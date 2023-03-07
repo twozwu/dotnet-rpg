@@ -8,9 +8,11 @@ namespace dotnet_rpg.Services.CharacterService
             new Character { Id = 1, Name = "Sam" }
         };
         public IMapper _mapper { get; }
+        private readonly DataContext _context;
 
-        public CharacterService(IMapper mapper)
+        public CharacterService(IMapper mapper, DataContext context)
         {
+            _context = context;
             _mapper = mapper;
         }
 
@@ -31,18 +33,18 @@ namespace dotnet_rpg.Services.CharacterService
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-            serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
+            var dbCharacter = await _context.Characters.ToListAsync();
+            serviceResponse.Data = dbCharacter
+                .Select(c => _mapper.Map<GetCharacterDto>(c))
+                .ToList();
             return serviceResponse;
         }
 
         public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
         {
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
-            var character = characters.FirstOrDefault(c => c.Id == id);
-            serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
-            // if (character is not null)
-            //     return character;
-            // throw new Exception("Character no found");
+            var dbCharacter = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id);
+            serviceResponse.Data = _mapper.Map<GetCharacterDto>(dbCharacter);
             return serviceResponse;
         }
 
@@ -91,7 +93,9 @@ namespace dotnet_rpg.Services.CharacterService
                 characters.Remove(character);
 
                 // serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
-                serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
+                serviceResponse.Data = characters
+                    .Select(c => _mapper.Map<GetCharacterDto>(c))
+                    .ToList();
             }
             catch (Exception ex)
             {
