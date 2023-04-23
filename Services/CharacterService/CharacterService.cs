@@ -22,7 +22,7 @@ namespace dotnet_rpg.Services.CharacterService
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             var character = _mapper.Map<Character>(newCharacter);
-            character.Id = characters.Max(c => c.Id) + 1;
+            character.Id = characters.Max(c => c.Id) + 1; // dto不會自動處裡ID，因此需手動處理
             characters.Add(character); // 新增映射角色
             serviceResponse.Data = characters
                 .Select(c => _mapper.Map<GetCharacterDto>(c)) // 取得對應的角色欄位
@@ -53,6 +53,7 @@ namespace dotnet_rpg.Services.CharacterService
         )
         {
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
+            // 當找不到角色id時的兩種處理方式：1. 使用try catch，2. 用if判斷是否找不到角色。
             try
             {
                 var character = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id);
@@ -60,7 +61,7 @@ namespace dotnet_rpg.Services.CharacterService
                 if (character is null)
                     throw new Exception($"Character with Id '{updatedCharacter.Id}' not found.");
 
-                // _mapper.Map(updateCharacterDto, character); // 使用映射法
+                // _mapper.Map(updatedCharacter, character); // 使用映射法
 
                 character.Name = updatedCharacter.Name;
                 character.HitPoints = updatedCharacter.HitPoints;
