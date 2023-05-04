@@ -7,6 +7,7 @@ namespace dotnet_rpg
             // 建立要映射的各種對應
             CreateMap<Character, GetCharacterDto>();
             CreateMap<AddCharacterDto, Character>();
+            // CreateMap<UpdateCharacterDto, Character>();
         }
     }
 }
