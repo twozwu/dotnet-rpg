@@ -5,6 +5,7 @@ namespace dotnet_rpg.Data
         public DataContext(DbContextOptions<DataContext> options)
             : base(options) { }
 
+        // Dbset 為建立 Characters 的資料表
         public DbSet<Character> Characters => Set<Character>();
     }
 }

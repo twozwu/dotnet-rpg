@@ -22,18 +22,20 @@ namespace dotnet_rpg.Services.CharacterService
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             var character = _mapper.Map<Character>(newCharacter);
-            character.Id = characters.Max(c => c.Id) + 1; // dto不會自動處裡ID，因此需手動處理
-            characters.Add(character); // 新增映射角色
-            serviceResponse.Data = characters
+            _context.Characters.Add(character); // 新增映射角色
+            await _context.SaveChangesAsync();
+            serviceResponse.Data = await _context.Characters
                 .Select(c => _mapper.Map<GetCharacterDto>(c)) // 取得對應的角色欄位
-                .ToList();
+                .ToListAsync();
             return serviceResponse;
         }
 
         public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
+            // serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
             var dbCharacter = await _context.Characters.ToListAsync();
+            // 將檔案比對Dto後回傳
             serviceResponse.Data = dbCharacter
                 .Select(c => _mapper.Map<GetCharacterDto>(c))
                 .ToList();
@@ -56,7 +58,7 @@ namespace dotnet_rpg.Services.CharacterService
             // 當找不到角色id時的兩種處理方式：1. 使用try catch，2. 用if判斷是否找不到角色。
             try
             {
-                var character = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id);
+                var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id);
                 // 自訂錯誤訊息
                 if (character is null)
                     throw new Exception($"Character with Id '{updatedCharacter.Id}' not found.");
@@ -70,6 +72,7 @@ namespace dotnet_rpg.Services.CharacterService
                 character.Intelligence = updatedCharacter.Intelligence;
                 character.Class = updatedCharacter.Class;
 
+                await _context.SaveChangesAsync();
                 serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
             }
             catch (Exception ex)
@@ -86,17 +89,19 @@ namespace dotnet_rpg.Services.CharacterService
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             try
             {
-                var character = characters.FirstOrDefault(c => c.Id == id);
+                var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id);
                 // 自訂錯誤訊息
                 if (character is null)
                     throw new Exception($"Character with Id '{id}' not found.");
 
-                characters.Remove(character);
+                _context.Characters.Remove(character);
+
+                await _context.SaveChangesAsync();
 
                 // serviceResponse.Data = _mapper.Map<GetCharacterDto>(character);
-                serviceResponse.Data = characters
+                serviceResponse.Data = await _context.Characters
                     .Select(c => _mapper.Map<GetCharacterDto>(c))
-                    .ToList();
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
