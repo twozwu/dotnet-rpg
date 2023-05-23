@@ -17,7 +17,7 @@ namespace dotnet_rpg.Data
         public async Task<ServiceResponse<int>> Register(User user, string password)
         {
             var response = new ServiceResponse<int>();
-            if (await UserExists(user.Usernames))
+            if (await UserExists(user.Username))
             {
                 response.Success = false;
                 response.Message = "User already exists";
@@ -36,7 +36,7 @@ namespace dotnet_rpg.Data
 
         public async Task<bool> UserExists(string username)
         {
-            if (await _context.Users.AnyAsync(u => u.Usernames.ToLower() == username.ToLower()))
+            if (await _context.Users.AnyAsync(u => u.Username.ToLower() == username.ToLower()))
             {
                 return true;
             }
