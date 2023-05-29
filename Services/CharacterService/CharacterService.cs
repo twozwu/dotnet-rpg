@@ -30,11 +30,11 @@ namespace dotnet_rpg.Services.CharacterService
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
+        public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters(int userId)
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
-            // serviceResponse.Data = characters.Select(c => _mapper.Map<GetCharacterDto>(c)).ToList();
-            var dbCharacter = await _context.Characters.ToListAsync();
+            // 找到哪些角色是屬於某一個玩家建的(使用.net Claim)
+            var dbCharacter = await _context.Characters.Where(c => c.User!.Id == userId).ToListAsync();
             // 將檔案比對Dto後回傳
             serviceResponse.Data = dbCharacter
                 .Select(c => _mapper.Map<GetCharacterDto>(c))

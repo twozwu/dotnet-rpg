@@ -88,7 +88,7 @@ namespace dotnet_rpg.Data
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // 建立姓名識別碼
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // 建立姓名識別碼(唯一值GUID)
                 new Claim(ClaimTypes.Name, user.Username) // 建立姓名資料
             };
 
