@@ -45,6 +45,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false // 受眾驗證
         };
     });
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 

@@ -1,3 +1,5 @@
+using System.Security.Claims;
+
 namespace dotnet_rpg.Services.CharacterService
 {
     public class CharacterService : ICharacterService
@@ -9,13 +11,16 @@ namespace dotnet_rpg.Services.CharacterService
         };
         public IMapper _mapper { get; }
         private readonly DataContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CharacterService(IMapper mapper, DataContext context)
+        public CharacterService(IMapper mapper, DataContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
         }
-
+        // 建立一個使用http上下文來取得UserID的方法
+        private int GetUserId() => int.Parse(_httpContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(
             AddCharacterDto newCharacter
         )
@@ -30,11 +35,11 @@ namespace dotnet_rpg.Services.CharacterService
             return serviceResponse;
         }
 
-        public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters(int userId)
+        public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             // 找到哪些角色是屬於某一個玩家建的(使用.net Claim)
-            var dbCharacter = await _context.Characters.Where(c => c.User!.Id == userId).ToListAsync();
+            var dbCharacter = await _context.Characters.Where(c => c.User!.Id == GetUserId()).ToListAsync();
             // 將檔案比對Dto後回傳
             serviceResponse.Data = dbCharacter
                 .Select(c => _mapper.Map<GetCharacterDto>(c))

@@ -20,8 +20,8 @@ namespace dotnet_rpg.Controllers
         public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> Get()
         {
             // 使用.NET驗證模型取得實際使用者的ID，然後用此ID來找有關連的角色
-            int userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value);
-            return Ok(await _characterService.GetAllCharacters(userId));
+            // int userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value);
+            return Ok(await _characterService.GetAllCharacters());
         }
 
         [HttpGet("{id}")]
