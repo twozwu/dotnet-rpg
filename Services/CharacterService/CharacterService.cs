@@ -27,9 +27,13 @@ namespace dotnet_rpg.Services.CharacterService
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             var character = _mapper.Map<Character>(newCharacter);
+            // 取得UserID並存到物件裡面
+            character.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
+
             _context.Characters.Add(character); // 新增映射角色
             await _context.SaveChangesAsync();
             serviceResponse.Data = await _context.Characters
+                .Where(c => c.User!.Id == GetUserId())
                 .Select(c => _mapper.Map<GetCharacterDto>(c)) // 取得對應的角色欄位
                 .ToListAsync();
             return serviceResponse;
