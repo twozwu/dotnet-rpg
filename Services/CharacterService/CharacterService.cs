@@ -67,9 +67,11 @@ namespace dotnet_rpg.Services.CharacterService
             // 當找不到角色id時的兩種處理方式：1. 使用try catch，2. 用if判斷是否找不到角色。
             try
             {
-                var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id);
+                var character = await _context.Characters
+                    .Include(c => c.User) // 使用include(類似SQL的join)來關聯角色資料
+                    .FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id);
                 // 自訂錯誤訊息
-                if (character is null)
+                if (character is null || character.User!.Id != GetUserId()) // character.User!.Id在此時會抓到null，因為他只會在_context讀取到，所以前面要加上include來join
                     throw new Exception($"Character with Id '{updatedCharacter.Id}' not found.");
 
                 // _mapper.Map(updatedCharacter, character); // 使用映射法
