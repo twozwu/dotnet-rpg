@@ -8,5 +8,6 @@ namespace dotnet_rpg.Data
         // Dbset 為建立 Characters 的資料表
         public DbSet<Character> Characters => Set<Character>();
         public DbSet<User> Users => Set<User>();
+        public DbSet<Weapon> Weapon => Set<Weapon>();
     }
 }
