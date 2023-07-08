@@ -13,14 +13,23 @@ namespace dotnet_rpg.Services.CharacterService
         private readonly DataContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CharacterService(IMapper mapper, DataContext context, IHttpContextAccessor httpContextAccessor)
+        public CharacterService(
+            IMapper mapper,
+            DataContext context,
+            IHttpContextAccessor httpContextAccessor
+        )
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
         }
+
         // 建立一個使用http上下文來取得UserID的方法
-        private int GetUserId() => int.Parse(_httpContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        private int GetUserId() =>
+            int.Parse(
+                _httpContextAccessor.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!
+            );
+
         public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(
             AddCharacterDto newCharacter
         )
@@ -43,7 +52,11 @@ namespace dotnet_rpg.Services.CharacterService
         {
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             // 找到哪些角色是屬於某一個玩家建的(使用.net Claim)
-            var dbCharacter = await _context.Characters.Where(c => c.User!.Id == GetUserId()).ToListAsync();
+            var dbCharacter = await _context.Characters
+                .Include(c => c.Weapon)
+                .Include(c => c.Skills)
+                .Where(c => c.User!.Id == GetUserId())
+                .ToListAsync();
             // 將檔案比對Dto後回傳
             serviceResponse.Data = dbCharacter
                 .Select(c => _mapper.Map<GetCharacterDto>(c))
@@ -54,7 +67,10 @@ namespace dotnet_rpg.Services.CharacterService
         public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
         {
             var serviceResponse = new ServiceResponse<GetCharacterDto>();
-            var dbCharacter = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id && c.User!.Id == GetUserId());
+            var dbCharacter = await _context.Characters
+                .Include(c => c.Weapon)
+                .Include(c => c.Skills)
+                .FirstOrDefaultAsync(c => c.Id == id && c.User!.Id == GetUserId());
             serviceResponse.Data = _mapper.Map<GetCharacterDto>(dbCharacter);
             return serviceResponse;
         }
@@ -100,7 +116,9 @@ namespace dotnet_rpg.Services.CharacterService
             var serviceResponse = new ServiceResponse<List<GetCharacterDto>>();
             try
             {
-                var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id && c.User!.Id == GetUserId());
+                var character = await _context.Characters.FirstOrDefaultAsync(
+                    c => c.Id == id && c.User!.Id == GetUserId()
+                );
                 // 自訂錯誤訊息
                 if (character is null)
                     throw new Exception($"Character with Id '{id}' not found.");
@@ -122,6 +140,50 @@ namespace dotnet_rpg.Services.CharacterService
             }
 
             return serviceResponse;
+        }
+
+        public async Task<ServiceResponse<GetCharacterDto>> AddCharacterSkill(
+            AddCharacterSkillDto newCharacterSkill
+        )
+        {
+            var response = new ServiceResponse<GetCharacterDto>();
+            try
+            {
+                var character = await _context.Characters // _context.資料表名
+                    .Include(c => c.Weapon)
+                    .Include(c => c.Skills)
+                    .FirstOrDefaultAsync(
+                        c => c.Id == newCharacterSkill.CharacterId && c.User!.Id == GetUserId()
+                    );
+
+                if (character is null)
+                {
+                    response.Success = false;
+                    response.Message = "Character not found.";
+                    return response;
+                }
+
+                var skill = await _context.Skills.FirstOrDefaultAsync(
+                    s => s.Id == newCharacterSkill.SkillId
+                );
+                if (skill is null)
+                {
+                    response.Success = false;
+                    response.Message = "Skill not found.";
+                    return response;
+                }
+
+                character.Skills!.Add(skill);
+                await _context.SaveChangesAsync();
+                response.Data = _mapper.Map<GetCharacterDto>(character);
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
+            }
+
+            return response;
         }
     }
 }
