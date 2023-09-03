@@ -22,12 +22,27 @@ namespace dotnet_rpg.Controllers
             return Ok(await _fightService.WeaponAttack(request));
         }
 
-        [HttpPost("Skill")]
+        [HttpPost("Skill")] // (/post/Skill)
         public async Task<ActionResult<ServiceResponse<AttackResultDto>>> SkillAttack(
             SkillAttackDto request
         )
         {
             return Ok(await _fightService.SkillAttack(request));
+        }
+        
+        /// <summary>
+        /// 戰鬥
+        /// </summary>
+        /// <param name="request"></param>
+        /// <remarks>post預設方法</remarks>
+        /// <returns></returns>
+        // 如果沒有加路徑即為預設 (/Fight)
+        [HttpPost]
+        public async Task<ActionResult<ServiceResponse<FightResultDto>>> Fight(
+            FightRequestDto request
+        )
+        {
+            return Ok(await _fightService.Fight(request));
         }
     }
 }
